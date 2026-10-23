@@ -14,8 +14,8 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
@@ -29,7 +29,7 @@ jobs:
     needs: tests
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build PalmClix.app
         run: |
           brew list --versions libusb || brew install libusb
@@ -44,7 +44,7 @@ jobs:
           kill -0 $PID && echo "PalmClix stayed running" && kill $PID
       - name: Zip
         run: ditto -c -k --sequesterRsrc --keepParent PalmClix.app PalmClix-macOS.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: PalmClix-macOS
           path: PalmClix-macOS.zip
@@ -53,30 +53,54 @@ jobs:
     needs: tests
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Build PalmClix.exe
         shell: pwsh
         run: windows\build_windows.ps1
-      - name: Launch check + screenshot
+      - name: Launch check, screenshot and shape test
         shell: pwsh
         run: |
-          $p = Start-Process "windows\dist\PalmClix\PalmClix.exe" -PassThru
-          Start-Sleep -Seconds 8
-          if ($p.HasExited) { throw "PalmClix.exe exited early with code $($p.ExitCode)" }
           Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          Add-Type @"
+          using System; using System.Runtime.InteropServices;
+          public struct RECT { public int Left, Top, Right, Bottom; }
+          public static class W32 {
+            [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr FindWindow(string c, string t);
+            [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+          }
+          "@
+          $p = Start-Process "windows\dist\PalmClix\PalmClix.exe" -PassThru
+          Start-Sleep -Seconds 10
+          if ($p.HasExited) { throw "PalmClix.exe exited early with code $($p.ExitCode)" }
+          $h = [W32]::FindWindow($null, "PalmClix")
+          if ($h -eq [IntPtr]::Zero) { throw "PalmClix window not found" }
+          [W32]::SetForegroundWindow($h) | Out-Null
+          Start-Sleep -Seconds 1
+          $r = New-Object RECT; [W32]::GetWindowRect($h, [ref]$r) | Out-Null
+          Write-Host "Window rect: $($r.Left),$($r.Top) - $($r.Right),$($r.Bottom)"
           $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
           $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
           [System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
           $bmp.Save("windows-screenshot.png")
+          $w = $r.Right - $r.Left; $hgt = $r.Bottom - $r.Top
+          if ($w -lt 500 -or $hgt -lt 440) { throw "Unexpected window size ${w}x${hgt}" }
+          function Px($x, $y) { $c = $bmp.GetPixel($r.Left + $x, $r.Top + $y); "$($c.R),$($c.G),$($c.B)" }
+          $corner = Px 3 3; $body = Px 60 250; $screen = Px 300 50; $mid = Px 269 470
+          Write-Host "corner=$corner body=$body lcd=$screen bottomEdge=$mid"
+          if ($corner -eq "255,0,254") { throw "Transparency failed: magenta visible at the window corner" }
+          $bc = $bmp.GetPixel($r.Left + 60, $r.Top + 250)
+          if (-not ($bc.B -gt $bc.R -and $bc.B -gt 90)) { throw "Camera body not drawn where expected (got $body)" }
+          Write-Host "Shape test passed: frameless, transparent corners, camera body visible."
           Stop-Process -Id $p.Id
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: PalmClix-Windows
           path: PalmClix-Windows.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: windows-screenshot
           path: windows-screenshot.png
@@ -86,7 +110,7 @@ jobs:
     needs: [macos, windows]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: artifacts
       - uses: softprops/action-gh-release@v2
