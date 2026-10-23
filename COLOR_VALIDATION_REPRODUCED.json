@@ -1,0 +1,60 @@
+{
+  "n_reference_photos": 10,
+  "training_samples_per_photo": 9000,
+  "validation": "leave-one-entire-photo-out; every 17th pixel",
+  "legacy_mean_mae": 16.835621596715935,
+  "dsc_matched_mean_mae": 8.20077268174117,
+  "max_coefficient_difference_from_shipped_profile": 5.964532931557187e-06,
+  "per_photo": [
+    {
+      "file": "capturetest001.bmp",
+      "legacy_mae": 4.0028856250002764,
+      "dsc_matched_holdout_mae": 5.143252856579697
+    },
+    {
+      "file": "calibrate001.bmp",
+      "legacy_mae": 14.351166436028999,
+      "dsc_matched_holdout_mae": 6.101035427509744
+    },
+    {
+      "file": "calibrate002.bmp",
+      "legacy_mae": 12.383474640336821,
+      "dsc_matched_holdout_mae": 7.547153926391837
+    },
+    {
+      "file": "troubleshoot001.bmp",
+      "legacy_mae": 16.732018219476323,
+      "dsc_matched_holdout_mae": 8.712789571178757
+    },
+    {
+      "file": "troubleshoot002.bmp",
+      "legacy_mae": 19.001414954314647,
+      "dsc_matched_holdout_mae": 9.81847649273222
+    },
+    {
+      "file": "troubleshoot003.bmp",
+      "legacy_mae": 23.483589655057273,
+      "dsc_matched_holdout_mae": 5.030769262429349
+    },
+    {
+      "file": "troubleshoot004.bmp",
+      "legacy_mae": 19.791255983570174,
+      "dsc_matched_holdout_mae": 5.062309672701798
+    },
+    {
+      "file": "troubleshoot005.bmp",
+      "legacy_mae": 24.470554525818343,
+      "dsc_matched_holdout_mae": 16.98039718167212
+    },
+    {
+      "file": "troubleshoot006.bmp",
+      "legacy_mae": 16.48351194338369,
+      "dsc_matched_holdout_mae": 7.017236305464927
+    },
+    {
+      "file": "troubleshoot007.bmp",
+      "legacy_mae": 17.6563439841728,
+      "dsc_matched_holdout_mae": 10.594306120751272
+    }
+  ]
+}

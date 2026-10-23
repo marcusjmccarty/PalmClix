@@ -1,0 +1,23 @@
+# Private camera data (photos) - never publish
+*.pcap
+reference_bmps/
+# Python / build output
+.venv/
+.venv-win/
+__pycache__/
+*.pyc
+.build/
+.build-app-dist/
+.build-app-work/
+.swiftpm/
+PalmClix.app/
+windows/dist/
+windows/build/
+windows/libusb-1.0.dll
+windows/PalmClix.ico
+*.zip
+*.log
+.DS_Store
+.backup/
+Debug PalmClix.command
+Rebuild PalmClix.command
