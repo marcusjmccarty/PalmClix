@@ -76,7 +76,7 @@ jobs:
           $p = Start-Process "windows\dist\PalmClix\PalmClix.exe" -PassThru
           Start-Sleep -Seconds 10
           if ($p.HasExited) { Write-Host "::error::PalmClix.exe exited early with code $($p.ExitCode)"; exit 1 }
-          $h = [W32]::FindWindow($null, "PalmClix")
+          $p.Refresh(); $h = $p.MainWindowHandle
           if ($h -eq [IntPtr]::Zero) {
             $p.Refresh()
             Write-Host "::error::PalmClix window not found (process main window title: '$($p.MainWindowTitle)')"
