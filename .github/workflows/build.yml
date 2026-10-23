@@ -75,26 +75,26 @@ jobs:
           "@
           $p = Start-Process "windows\dist\PalmClix\PalmClix.exe" -PassThru
           Start-Sleep -Seconds 10
-          if ($p.HasExited) { throw "PalmClix.exe exited early with code $($p.ExitCode)" }
+          if ($p.HasExited) { Write-Host "::error::PalmClix.exe exited early with code $($p.ExitCode)"; exit 1 }
           $h = [W32]::FindWindow($null, "PalmClix")
-          if ($h -eq [IntPtr]::Zero) { throw "PalmClix window not found" }
+          if ($h -eq [IntPtr]::Zero) { Write-Host "::error::PalmClix window not found"; exit 1 }
           [W32]::SetForegroundWindow($h) | Out-Null
           Start-Sleep -Seconds 1
           $r = New-Object RECT; [W32]::GetWindowRect($h, [ref]$r) | Out-Null
-          Write-Host "Window rect: $($r.Left),$($r.Top) - $($r.Right),$($r.Bottom)"
+          Write-Host "::notice::Window rect: $($r.Left),$($r.Top) - $($r.Right),$($r.Bottom)"
           $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
           $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
           [System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
           $bmp.Save("windows-screenshot.png")
           $w = $r.Right - $r.Left; $hgt = $r.Bottom - $r.Top
-          if ($w -lt 500 -or $hgt -lt 440) { throw "Unexpected window size ${w}x${hgt}" }
+          if ($w -lt 500 -or $hgt -lt 440) { Write-Host "::error::Unexpected window size ${w}x${hgt}"; exit 1 }
           function Px($x, $y) { $c = $bmp.GetPixel($r.Left + $x, $r.Top + $y); "$($c.R),$($c.G),$($c.B)" }
           $corner = Px 3 3; $body = Px 60 250; $screen = Px 300 50; $mid = Px 269 470
-          Write-Host "corner=$corner body=$body lcd=$screen bottomEdge=$mid"
-          if ($corner -eq "255,0,254") { throw "Transparency failed: magenta visible at the window corner" }
+          Write-Host "::notice::corner=$corner body=$body lcd=$screen bottomEdge=$mid"
+          if ($corner -eq "255,0,254") { Write-Host "::error::Transparency failed: magenta visible at the window corner"; exit 1 }
           $bc = $bmp.GetPixel($r.Left + 60, $r.Top + 250)
-          if (-not ($bc.B -gt $bc.R -and $bc.B -gt 90)) { throw "Camera body not drawn where expected (got $body)" }
-          Write-Host "Shape test passed: frameless, transparent corners, camera body visible."
+          if (-not ($bc.B -gt $bc.R -and $bc.B -gt 90)) { Write-Host "::error::Camera body not drawn where expected (got $body)"; exit 1 }
+          Write-Host "::notice::Shape test passed: frameless, transparent corners, camera body visible."
           Stop-Process -Id $p.Id
       - uses: actions/upload-artifact@v5
         with:
