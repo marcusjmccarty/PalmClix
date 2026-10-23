@@ -1074,5 +1074,25 @@ def main():
     root.mainloop()
 
 
+def crash_log_path() -> pathlib.Path:
+    return pathlib.Path(os.environ.get("TEMP") or "/tmp") / "PalmClix-crash.log"
+
+
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit:
+        raise
+    except Exception:
+        import traceback
+        details = traceback.format_exc()
+        try:
+            crash_log_path().write_text(details, encoding="utf-8")
+        except Exception:
+            pass
+        try:
+            messagebox.showerror("PalmClix could not start",
+                                 details[-1500:] + f"\n\nSaved to {crash_log_path()}")
+        except Exception:
+            pass
+        raise

@@ -77,7 +77,13 @@ jobs:
           Start-Sleep -Seconds 10
           if ($p.HasExited) { Write-Host "::error::PalmClix.exe exited early with code $($p.ExitCode)"; exit 1 }
           $h = [W32]::FindWindow($null, "PalmClix")
-          if ($h -eq [IntPtr]::Zero) { Write-Host "::error::PalmClix window not found"; exit 1 }
+          if ($h -eq [IntPtr]::Zero) {
+            $p.Refresh()
+            Write-Host "::error::PalmClix window not found (process main window title: '$($p.MainWindowTitle)')"
+            $crash = Join-Path $env:TEMP "PalmClix-crash.log"
+            if (Test-Path $crash) { Get-Content $crash | ForEach-Object { Write-Host "::error::$_" } }
+            exit 1
+          }
           [W32]::SetForegroundWindow($h) | Out-Null
           Start-Sleep -Seconds 1
           $r = New-Object RECT; [W32]::GetWindowRect($h, [ref]$r) | Out-Null
