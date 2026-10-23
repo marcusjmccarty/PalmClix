@@ -14,8 +14,27 @@ Both versions share the same read-only USB and photo-decoding backend (`palmclix
 
 Get the latest build from **[Releases](../../releases)**:
 
-- **PalmClix-macOS.zip**: unzip, then move `PalmClix.app` to Applications. The app is ad-hoc signed, not notarized. The first time, right-click it and choose **Open**, or run `xattr -dr com.apple.quarantine /Applications/PalmClix.app`.
+- **PalmClix-macOS.zip**: unzip, then move `PalmClix.app` to Applications. See *macOS security warning* below before the first launch.
 - **PalmClix-Windows.zip**: unzip anywhere and run `PalmClix.exe`. SmartScreen may warn about an unrecognized app; choose **More info → Run anyway**.
+
+The **Source code (zip)** and **Source code (tar.gz)** files that GitHub adds to every release hold the same source code in two archive formats. You only need them if you want to build PalmClix yourself.
+
+### macOS security warning ("could not verify … free from malware")
+
+PalmClix isn't notarized by Apple: that requires a paid Apple Developer account. macOS therefore blocks the downloaded app, and the **Build PalmClix.app.command** script from the source download, the first time you open them. You only have to allow each one once:
+
+1. Double-click the app (or the `.command` file) and click **Done** (or **OK**) on the warning.
+2. Open **System Settings → Privacy & Security** and scroll down to the Security section.
+3. Next to *"PalmClix" was blocked…*, click **Open Anyway** and confirm with your password or Touch ID.
+
+Or remove the download quarantine flag in Terminal:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/PalmClix.app
+xattr -dr com.apple.quarantine ~/Downloads/PalmClix-1.1.0   # the unzipped source folder
+```
+
+On macOS 14 and earlier you can instead right-click the item and choose **Open**. macOS 15 removed that shortcut.
 
 ### Windows: one-time USB driver
 
@@ -68,6 +87,8 @@ After a power loss, the camera catalog showed eight occupied slots: an unexplain
 ./build_app.sh        # or double-click "Build PalmClix.app.command"
 open PalmClix.app
 ```
+
+Running the scripts from Terminal as shown avoids the Gatekeeper warning entirely. Double-clicking **Build PalmClix.app.command** works too, but needs the one-time **Open Anyway** step described above.
 
 **Windows** (Python 3.12 x64 and 7-Zip on PATH):
 
